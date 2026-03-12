@@ -378,3 +378,241 @@ export default function App() {
       </div>
 
       {/* rating */}
+      <div style={{
+        position:"absolute",bottom:60,right:48,textAlign:"right",
+        opacity:heroVis?1:0,transition:"opacity 1s 1s",
+      }}>
+        <div style={{fontSize:40,fontWeight:300,lineHeight:1}}>4.9</div>
+        <div style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:3,color:`${DARK}44`}}>RATING</div>
+      </div>
+    </div>
+
+    {/* ══════════ MENU ══════════ */}
+    <div id="menu" ref={menuRef} style={{maxWidth:1200,margin:"0 auto",padding:"80px 48px 120px"}}>
+
+      {/* section title */}
+      <div style={{
+        display:"flex",alignItems:"baseline",gap:20,marginBottom:52,
+        opacity:menuInView?1:0,transform:menuInView?"none":"translateY(30px)",
+        transition:"all 1s cubic-bezier(0.16,1,0.3,1)",
+      }}>
+        <h2 style={{fontSize:"clamp(42px,6vw,80px)",fontWeight:300,letterSpacing:-2}}>Menu</h2>
+        <div style={{flex:1,height:1,background:`${DARK}0f`,alignSelf:"center"}}/>
+        <span style={{fontFamily:"'Jost'",fontSize:10,letterSpacing:3,color:`${DARK}33`}}>2024</span>
+      </div>
+
+      {/* tabs */}
+      <div style={{
+        display:"flex",gap:28,marginBottom:52,
+        borderBottom:`1px solid ${DARK}0a`,
+        opacity:menuInView?1:0,transition:"opacity .8s .2s",
+      }}>
+        {Object.keys(menuData).map(cat=>(
+          <button key={cat} className={`cat${activeCategory===cat?" on":""}`}
+            onClick={()=>setActiveCategory(cat)} onMouseEnter={big} onMouseLeave={small}>
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* product grid - image cards */}
+      <ProductGrid
+        items={menuData[activeCategory]}
+        cart={cart}
+        addItem={addItem}
+        removeItem={removeItem}
+        big={big} small={small}
+        DARK={DARK} CREAM={CREAM}
+      />
+    </div>
+
+    {/* OVERLAY */}
+    <div className={`overlay${cartOpen?" on":""}`} onClick={()=>setCartOpen(false)}/>
+
+    {/* ══════════ CART ══════════ */}
+    <div className={`cart-panel${cartOpen?" open":""}`}>
+      <div style={{padding:"24px 32px",borderBottom:`1px solid ${DARK}08`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div>
+          <div style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:5,color:`${DARK}44`,marginBottom:4}}>YOUR ORDER</div>
+          <div style={{fontSize:26,fontWeight:300}}>購物車</div>
+        </div>
+        <button className="nav-btn" onClick={()=>setCartOpen(false)} onMouseEnter={big} onMouseLeave={small}>Close</button>
+      </div>
+      {cartItems.length===0?(
+        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12}}>
+          <div style={{fontSize:36}}>🛒</div>
+          <div style={{fontFamily:"'Jost'",fontSize:10,letterSpacing:3,color:`${DARK}33`}}>CART IS EMPTY</div>
+        </div>
+      ):(
+        <>
+          <div style={{flex:1,overflowY:"auto",padding:"16px 32px"}}>
+            {cartItems.map(item=>(
+              <div key={item.id} style={{display:"flex",gap:12,padding:"16px 0",borderBottom:`1px solid ${DARK}08`}}>
+                <div style={{width:56,height:56,borderRadius:4,background:item.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>{item.emoji}</div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:16,marginBottom:3}}>{item.name}</div>
+                  <div style={{fontFamily:"'Jost'",fontSize:10,color:`${DARK}44`,letterSpacing:1}}>NT$ {item.price} × {item.qty}</div>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:8}}>
+                  <span style={{fontSize:16,fontWeight:300}}>NT$ {item.price*item.qty}</span>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <button className="add" onClick={()=>removeItem(item.id)} style={{padding:"4px 10px"}} onMouseEnter={big} onMouseLeave={small}>−</button>
+                    <span style={{fontFamily:"'Jost'",fontSize:12,minWidth:18,textAlign:"center"}}>{item.qty}</span>
+                    <button className="add on" onClick={()=>addItem(item)} style={{padding:"4px 10px"}} onMouseEnter={big} onMouseLeave={small}>+</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{padding:"18px 32px 28px",borderTop:`1px solid ${DARK}08`}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6,fontFamily:"'Jost'",fontSize:11,color:`${DARK}44`}}><span>SUBTOTAL</span><span>NT$ {totalPrice}</span></div>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:16,fontFamily:"'Jost'",fontSize:11,color:`${DARK}44`}}><span>DELIVERY</span><span>NT$ 30</span></div>
+            <div style={{height:1,background:`${DARK}0f`,marginBottom:16}}/>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:20,fontSize:22,fontWeight:300}}><span>Total</span><span>NT$ {totalPrice+30}</span></div>
+            <button className="submit" onClick={()=>{setCartOpen(false);setCheckout(true);}} onMouseEnter={big} onMouseLeave={small}>
+              Proceed to Checkout →
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+
+    {/* ══════════ CHECKOUT ══════════ */}
+    {checkout&&(
+      <div className="modal-bg">
+        <div className="modal">
+          {!orderDone?(
+            <>
+              <div style={{padding:"28px 32px",borderBottom:`1px solid ${DARK}08`,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div>
+                  <div style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:5,color:`${DARK}44`,marginBottom:8}}>CHECKOUT</div>
+                  <div style={{fontSize:28,fontWeight:300}}>訂購資料</div>
+                </div>
+                <button className="nav-btn" onClick={()=>setCheckout(false)} onMouseEnter={big} onMouseLeave={small}>✕</button>
+              </div>
+              <div style={{padding:"28px 32px",display:"flex",flexDirection:"column",gap:20}}>
+                {[["姓名 NAME","name","text","Your name"],["電話 PHONE","phone","tel","0912-345-678"],["地址 ADDRESS","address","text","台中市..."]].map(([label,key,type,ph])=>(
+                  <div key={key}>
+                    <div style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:4,color:`${DARK}44`,marginBottom:6}}>{label}</div>
+                    <input type={type} placeholder={ph} value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))}/>
+                  </div>
+                ))}
+                <div>
+                  <div style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:4,color:`${DARK}44`,marginBottom:6}}>備註 NOTE</div>
+                  <textarea placeholder="特殊需求..." value={form.note} onChange={e=>setForm(p=>({...p,note:e.target.value}))} rows={2}/>
+                </div>
+                <div>
+                  <div style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:4,color:`${DARK}44`,marginBottom:10}}>付款 PAYMENT</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                    {[["credit","💳","信用卡"],["linepay","💚","LINE Pay"],["cash","💵","貨到付款"]].map(([val,icon,label])=>(
+                      <div key={val} className={`pay-opt${form.payment===val?" on":""}`}
+                        onClick={()=>setForm(p=>({...p,payment:val}))} onMouseEnter={big} onMouseLeave={small} style={{cursor:"none"}}>
+                        <div style={{fontSize:18,marginBottom:5}}>{icon}</div>
+                        <div style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:2,color:form.payment===val?DARK:`${DARK}44`}}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{borderTop:`1px solid ${DARK}08`,paddingTop:18}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:14,fontSize:20,fontWeight:300}}>
+                    <span style={{fontFamily:"'Jost'",fontSize:10,letterSpacing:2,color:`${DARK}55`,alignSelf:"center"}}>TOTAL</span>
+                    <span>NT$ {totalPrice+30}</span>
+                  </div>
+                  <button className="submit" disabled={!form.name||!form.phone||!form.address}
+                    onClick={()=>{if(form.name&&form.phone&&form.address)setOrderDone(true);}} onMouseEnter={big} onMouseLeave={small}>
+                    確認下單 · Confirm Order
+                  </button>
+                </div>
+              </div>
+            </>
+          ):(
+            <div style={{padding:"60px 40px",textAlign:"center"}}>
+              <div style={{fontFamily:"'Cormorant Garamond'",fontSize:64,fontWeight:300,lineHeight:1,marginBottom:16}}>✓</div>
+              <div style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:6,color:`${DARK}44`,marginBottom:12}}>ORDER CONFIRMED</div>
+              <div style={{fontSize:36,fontWeight:300,marginBottom:8}}>訂單成立</div>
+              <div style={{height:1,background:`${DARK}0f`,width:60,margin:"16px auto"}}/>
+              <p style={{fontFamily:"'Jost'",fontSize:11,color:`${DARK}55`,letterSpacing:1,lineHeight:2,marginBottom:6}}>感謝您，{form.name}<br/>預計 30–45 分鐘送達</p>
+              <p style={{fontFamily:"'Jost'",fontSize:10,color:`${DARK}33`,letterSpacing:2,marginBottom:36}}>#ORD-{Math.floor(Math.random()*90000)+10000}</p>
+              <button className="submit" onClick={()=>{setCheckout(false);setOrderDone(false);setCart({});setForm({name:"",phone:"",address:"",note:"",payment:"credit"});}} onMouseEnter={big} onMouseLeave={small}>
+                繼續點餐 · Continue
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {/* floating cart */}
+    {totalQty>0&&!cartOpen&&(
+      <button onClick={()=>setCartOpen(true)} onMouseEnter={big} onMouseLeave={small}
+        style={{
+          position:"fixed",bottom:36,right:36,background:DARK,color:CREAM,border:"none",
+          borderRadius:"50%",width:58,height:58,
+          fontFamily:"'Jost'",fontSize:9,letterSpacing:2,
+          display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+          zIndex:450,boxShadow:`0 8px 28px ${DARK}22`,
+        }}>
+        <span style={{fontSize:18}}>🛒</span>
+        <span>{totalQty}</span>
+      </button>
+    )}
+
+    {/* footer */}
+    <div style={{borderTop:`1px solid ${DARK}08`,padding:"32px 48px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <span style={{fontFamily:"'Cormorant Garamond'",fontSize:18,fontWeight:300,letterSpacing:4}}>味鮮小館</span>
+      <span style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:3,color:`${DARK}33`}}>© 2024 · TAICHUNG</span>
+      <span style={{fontFamily:"'Jost'",fontSize:9,letterSpacing:2,color:`${DARK}33`}}>11:00–21:00 DAILY</span>
+    </div>
+  </div>
+  );
+}
+
+/* ── Product Grid with per-card IntersectionObserver ── */
+function ProductGrid({ items, cart, addItem, removeItem, big, small, DARK, CREAM }) {
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:24}}>
+      {items.map((item,i) => (
+        <ProductCard key={item.id} item={item} idx={i}
+          cart={cart} addItem={addItem} removeItem={removeItem}
+          big={big} small={small} DARK={DARK} CREAM={CREAM}/>
+      ))}
+    </div>
+  );
+}
+
+function ProductCard({ item, idx, cart, addItem, removeItem, big, small, DARK, CREAM }) {
+  const [ref, visible] = useInView(0.1);
+  return (
+    <div ref={ref} className={`prod-card${visible?" show":""}`}
+      style={{transitionDelay:`${idx*0.12}s`}}>
+      {/* image area */}
+      <div className="prod-img"
+        style={{background:`linear-gradient(160deg,${item.bg}cc,${item.bg}88)`}}>
+        <span style={{fontSize:72,filter:"drop-shadow(0 4px 12px rgba(0,0,0,.25))",position:"relative",zIndex:1}}>{item.emoji}</span>
+      </div>
+
+      {/* info */}
+      <div style={{padding:"18px 0 8px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+          <div>
+            {item.tag&&<div style={{fontFamily:"'Jost'",fontSize:8,letterSpacing:3,color:`${DARK}44`,marginBottom:4}}>{item.tag}</div>}
+            <h3 style={{fontSize:20,fontWeight:400,letterSpacing:.5}}>{item.name}</h3>
+          </div>
+          <span style={{fontSize:20,fontWeight:300,color:DARK,flexShrink:0,marginLeft:8}}>
+            <span style={{fontFamily:"'Jost'",fontSize:9,color:`${DARK}44`}}>NT$</span>{item.price}
+          </span>
+        </div>
+        <p style={{fontFamily:"'Jost'",fontSize:11,color:`${DARK}44`,letterSpacing:1,lineHeight:1.7,marginBottom:14}}>{item.desc}</p>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          {cart[item.id]&&<>
+            <button className="add" onClick={()=>removeItem(item.id)} style={{padding:"5px 11px"}} onMouseEnter={big} onMouseLeave={small}>−</button>
+            <span style={{fontFamily:"'Jost'",fontSize:13,minWidth:18,textAlign:"center"}}>{cart[item.id].qty}</span>
+          </>}
+          <button className={`add${cart[item.id]?" on":""}`} onClick={()=>addItem(item)} onMouseEnter={big} onMouseLeave={small}>
+            {cart[item.id]?"+":"Add to order"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
